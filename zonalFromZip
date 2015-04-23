@@ -1,0 +1,39 @@
+zonalFromZip <- function (zip.file, zones.rast, rast.file.ext = ".tif", aux.file.ext = NULL, delete.unzipped = TRUE, verbosity = 2, ...)
+  # zip.file: path to the zip containing the raster maps to calculate zonal stats from
+  # zones.rast: raster map (in your R workspace) containing the spatial units to calculate zonal stats to
+  # rast.file.ext: file extension for the raster maps on disk
+  # aux.file.ext: file extension for the auxiliary files (e.g. ".hdr" for .bil raster files, or ".rdc" for Idrisi .rst files)
+  # ...: arguments to pass to the 'zonal' function from the 'raster' package
+{
+  require(raster)
+  rast.files <- unzip(zip.file, list = TRUE) $ Name
+  var.names <- unique(tools::file_path_sans_ext(rast.files))
+  n.var <- length(var.names)
+  zonal.stats <- vector("list", length(var.names))
+  names(zonal.stats) <- var.names
+  for (i in 1:n.var) {
+    if (verbosity >= 1) message("Getting variable ", i, " of ", n.var)
+    if (verbosity >= 2) message("  - unzipping file...")
+    unzip(zip.file, files = paste0(var.names[i], rast.file.ext))
+    if (!is.null(aux.file.ext)) unzip(zip.file, files = paste0(var.names[i], aux.file.ext))
+    var.rast <- raster(paste0(var.names[i], rast.file.ext))
+    if (!compareRaster(var.rast, zones.rast, stopiffalse = FALSE)) {
+      if (verbosity >= 2) message("  - cropping to zones raster...")
+      var.rast <- crop(var.rast, zones.rast)
+    }
+    if (verbosity >= 2) message("  - calculating zonal stats...")
+    zonal.stats[[i]] <- raster::zonal(var.rast, zones.rast, ...)
+    if (verbosity >= 2) message("  - deleting unzipped file...")
+    if (delete.unzipped) {
+      unlink(list.files()[grep(pattern = paste0(var.names[i], rast.file.ext), x = list.files())])
+      if (!is.null(aux.file.ext)) unlink(list.files()[grep(pattern = paste0(var.names[i], aux.file.ext), x = list.files())])
+    }
+  }
+  if (verbosity >= 1) message("Converting results to data frame...")
+  zonal.stats <- as.data.frame(zonal.stats)
+  zonal.stats <- subset(zonal.stats, select = c(1, seq(2, ncol(zonal.stats), 2)))
+  colnames(zonal.stats)[1] <- "zone"
+  colnames(zonal.stats)[-1] <- var.names
+  if (verbosity >= 1) message("Finished!")
+  return(zonal.stats)
+}

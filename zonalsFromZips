@@ -1,0 +1,10 @@
+zonalsFromZips <- function(zip.files, zones.rast, rast.file.ext = ".tif", aux.file.ext = NULL, verbosity = 1, ...) {
+  results <- vector("list", length(zip.files))
+  names(results) <- basename(tools::file_path_sans_ext(zip.files))
+  for (f in 1:length(zip.files)) {
+    message("\nUNZIPPING FILE ", f, " OF ", length(zip.files), " (", basename(zip.files[f]), ")...")
+    results[[f]] <- zonalFromZip(zip.file = zip.files[f], zones.rast = zones.rast, rast.file.ext = rast.file.ext, aux.file.ext = aux.file.ext, verbosity = verbosity, ...)
+  }; rm(f)
+  message("\nFINISHED ALL!")
+  return(results)
+}  # end zonalsFromZips function

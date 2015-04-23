@@ -1,0 +1,63 @@
+plotMapColumns <-
+function(map, columns, centroids = FALSE, rasterize = TRUE, raster.upscale = 1, max.rast.dim = NULL, ...) {
+  # [created for fuzzySim paper; used also for Pleurodeles and Pelobates]
+  # map: SpatialPolygons object
+  # columns: index numbers of the columns of map@data containing the values to plot (there will be one output map per column)
+  # raster.upscale: number by which the difference between maximum and minimum coordinates should be divided to get the number of pixels (if rasterize = TRUE); it's advised to first calculate min and max coordinates and see for yourself which divisor will make reasonably computable raster maps (e.g., for geographical lat-lon an upscale factor of 1 may work, but for a UTM projection you may need an upscale of factor 10,000)
+  # ...: additional arguments for (sp)plot function
+  start.time <- Sys.time()
+  stopifnot(raster.upscale > 0 | is.null(raster.upscale),
+            require(raster) | rasterize == FALSE,
+            columns %in% 1:ncol(map)  # doesn't seem to be working
+            )
+
+  if (!(columns %in% 1:ncol(map))) stop ("'columns' must be index number(s)")  #   # also doesn't seem to be working
+
+  if (rasterize) {
+    xmin <- min(coordinates(map)[,1])
+    xmax <- max(coordinates(map)[,1])
+    ymin <- min(coordinates(map)[,2])
+    ymax <- max(coordinates(map)[,2])
+    wdth <- round(xmax - xmin)
+    hght <- round(ymax - ymin)
+
+    #if (raster.upscale == "auto") {
+      #max.length <- max(wdth, hght)
+      #if (max.length > 500) raster.upscale <-
+    #}
+
+    if (!is.null(max.rast.dim)) {
+      rast.dim <- wdth * hght
+    }
+
+    wdth <- wdth / raster.upscale
+    hght <- hght / raster.upscale
+    require(raster)
+    rast <- raster(nrows = hght, ncols = wdth, xmn = xmin, xmx = xmax, ymn = ymin, ymx = ymax)
+  }  # end if rasterize I
+
+  if (centroids) {
+    attr.table <- map@data
+    map <- SpatialPointsDataFrame(coordinates(map))
+    map@data <- attr.table
+    rast <- raster(map)
+  } else {
+    require(sp)
+  }
+
+  n.cols <- length(columns)
+  col.count <- 0
+  for (i in columns) {
+    col.count <- col.count + 1
+    message("Plotting column ", col.count, " of ", n.cols, "...")
+    if (rasterize) {
+      map.rast <- rasterize(x = map, y = rast, field = names(map)[i], fun = 'last')
+      plot(map.rast, main = names(map)[i], ...)
+    }  # end if rasterize II
+    else {
+      print(spplot(map, zcol = names(map)[i], main = names(map)[i], ...))
+    }  # end else
+  }  # end for i
+  message("Finished!")
+  if (require(maRcia)) maRcia::timer(start.time)
+}

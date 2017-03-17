@@ -12,7 +12,7 @@ varPart <- function (A, B, C = NA, AB, AC = NA, BC = NA, ABC = NA, model.type = 
     else if (all(is.finite(partials))) 
         twofactors <- FALSE
     else stop("You must provide numeric values for either A, B and AB (for variation partitioning among two factors) or A, B, C, AB, BC, AC and ABC (for variation partitioning among three factors). See Details.")
-    if (!all(partials >= 0 & partials <= 1)) 
+    if (!all(na.omit(partials) >= 0 & na.omit(partials) <= 1)) 
         stop("Values must be between 0 and 1.")
     totalexpl <- ifelse(twofactors, AB, ABC)
     unexpl <- 1 - totalexpl

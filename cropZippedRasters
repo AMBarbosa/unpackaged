@@ -23,7 +23,7 @@ cropZippedRasters <- function(zip.file, mask.map, ext = TRUE, rast.file.ext = ".
 
     if (verbosity >= 2) message("  - cropping/masking map...")
     var.cut <- crop(var.rast, mask.map, snap = "out")
-    if (!ext)  var.cut <- mask(var.cut)
+    if (!ext)  var.cut <- mask(var.cut, mask.map)
     masked.rasts[[i]] <- var.cut
 
     if (verbosity >= 2) message("  - deleting unzipped file...")

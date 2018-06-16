@@ -1,0 +1,38 @@
+cropZippedRasters <- function(zip.file, mask.map, ext = TRUE, rast.file.ext = ".tif", aux.file.ext = NULL, delete.unzipped = TRUE, verbosity = 2, ...)
+  # zip.file: path to the zip containing the raster maps to calculate zonal stats from
+  # mask.map: raster map (in your R workspace) containing the spatial units to calculate zonal stats to
+  # ext: logical, whether to just crop to the extent of mask.map, or (if FALSE) to mask with the mask.map limits
+  # rast.file.ext: file extension for the raster maps on disk
+  # aux.file.ext: file extension for the auxiliary files (e.g. ".hdr" for .bil raster files, or ".rdc" for Idrisi .rst files)
+  # ...: arguments to pass to the 'zonal' function from the 'raster' package
+{
+
+  require(raster)
+  rast.files <- unzip(zip.file, list = TRUE) $ Name
+  var.names <- unique(tools::file_path_sans_ext(rast.files))
+  n.var <- length(var.names)
+  masked.rasts <- vector("list", length(var.names))
+  names(masked.rasts) <- var.names
+
+  for (i in 1:n.var) {
+    if (verbosity >= 1) message("Importing map ", i, " of ", n.var)
+    if (verbosity >= 2) message("  - unzipping file...")
+    unzip(zip.file, files = paste0(var.names[i], rast.file.ext))
+    if (!is.null(aux.file.ext)) unzip(zip.file, files = paste0(var.names[i], aux.file.ext))
+    var.rast <- raster(paste0(var.names[i], rast.file.ext))
+
+    if (verbosity >= 2) message("  - cropping/masking map...")
+    var.cut <- crop(var.rast, mask.map, snap = "out")
+    if (!ext)  var.cut <- mask(var.cut)
+    masked.rasts[[i]] <- var.cut
+
+    if (verbosity >= 2) message("  - deleting unzipped file...")
+    if (delete.unzipped) {
+      unlink(list.files()[grep(pattern = paste0(var.names[i], rast.file.ext), x = list.files())])
+      if (!is.null(aux.file.ext)) unlink(list.files()[grep(pattern = paste0(var.names[i], aux.file.ext), x = list.files())])
+    }
+
+  }
+  if (verbosity >= 1) message("Finished!")
+  return(stack(masked.rasts))
+}

@@ -1,9 +1,11 @@
-zonalFromZip <- function (zip.file, zones.rast, rast.file.ext = ".tif", aux.file.ext = NULL, delete.unzipped = TRUE, verbosity = 2, ...)
+zonalFromZip <- function (zip.file, zones.map, fun, rast.file.ext = ".tif", aux.file.ext = NULL, delete.unzipped = TRUE, verbosity = 2, ...)
+  # version 2.0 (updated 11/07/2018)
   # zip.file: path to the zip containing the raster maps to calculate zonal stats from
-  # zones.rast: raster map (in your R workspace) containing the spatial units to calculate zonal stats to
-  # rast.file.ext: file extension for the raster maps on disk
+  # zones.map: map (in your R workspace) containing the spatial units to calculate zonal stats to; must be of class 'raster', 'SpatialPolygons' or 'SpatialPolygonsDataFrame' and have the same CRS (and resolution if raster) of the maps in 'zip.file'
+  # fun: function to calculate (e.g. mean)
+  # rast.file.ext: file extension of the raster maps in 'zip.file'
   # aux.file.ext: file extension for the auxiliary files (e.g. ".hdr" for .bil raster files, or ".rdc" for Idrisi .rst files)
-  # ...: arguments to pass to the 'zonal' function from the 'raster' package
+  # ...: additional arguments to pass to the 'raster::zonal' (if 'zones.map' is a raster) or the 'raster::extract' function (if 'zones.map' is a SpatialPolygons* map), such as na.rm = TRUE
 {
   require(raster)
   rast.files <- unzip(zip.file, list = TRUE) $ Name
@@ -11,24 +13,32 @@ zonalFromZip <- function (zip.file, zones.rast, rast.file.ext = ".tif", aux.file
   n.var <- length(var.names)
   zonal.stats <- vector("list", length(var.names))
   names(zonal.stats) <- var.names
+  
   for (i in 1:n.var) {
     if (verbosity >= 1) message("Getting variable ", i, " of ", n.var)
     if (verbosity >= 2) message("  - unzipping file...")
     unzip(zip.file, files = paste0(var.names[i], rast.file.ext))
     if (!is.null(aux.file.ext)) unzip(zip.file, files = paste0(var.names[i], aux.file.ext))
     var.rast <- raster(paste0(var.names[i], rast.file.ext))
-    if (!compareRaster(var.rast, zones.rast, stopiffalse = FALSE)) {
+    if (!compareRaster(var.rast, zones.map, stopiffalse = FALSE)) {
       if (verbosity >= 2) message("  - cropping to zones raster...")
-      var.rast <- crop(var.rast, zones.rast)
+      var.rast <- crop(var.rast, zones.map)
     }
+    
     if (verbosity >= 2) message("  - calculating zonal stats...")
-    zonal.stats[[i]] <- raster::zonal(var.rast, zones.rast, ...)
+    if (class(zones.map) == "raster")
+      zonal.stats[[i]] <- raster::zonal(var.rast, zones.map, fun = fun, ...)
+    else if (class(zones.map) %in% c("SpatialPolygons", "SpatialPolygonsDataFrame"))
+      zonal.stats[[i]] <- raster::extract(var.rast, zones.map, fun = fun, df = TRUE, ...)
+    else stop("'zones.map' must be of class 'raster', 'SpatialPolygons' or 'SpatialPolygonsDataFrame'")
+    
     if (verbosity >= 2) message("  - deleting unzipped file...")
     if (delete.unzipped) {
       unlink(list.files()[grep(pattern = paste0(var.names[i], rast.file.ext), x = list.files())])
       if (!is.null(aux.file.ext)) unlink(list.files()[grep(pattern = paste0(var.names[i], aux.file.ext), x = list.files())])
-    }
-  }
+    }  # end if delete
+  }  # end for i
+  
   if (verbosity >= 1) message("Converting results to data frame...")
   zonal.stats <- as.data.frame(zonal.stats)
   zonal.stats <- subset(zonal.stats, select = c(1, seq(2, ncol(zonal.stats), 2)))

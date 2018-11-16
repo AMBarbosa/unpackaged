@@ -4,9 +4,10 @@ multGLM <- function(data, sp.cols, var.cols, id.col = NULL, family = "binomial",
                     start = "null.model", direction = "both", select = "AIC",
                     trim = TRUE, Y.prediction = FALSE, P.prediction = TRUE,
                     Favourability = TRUE, group.preds = TRUE, TSA = FALSE,
-                    coord.cols = NULL, degree = 3, ...) {
+                    coord.cols = NULL,
+                    degree = 3, ...) {
 
-  # version 4.0 (26 Oct 2018)
+  # version 4.0 (16 Nov 2018)
 
   start.time <- Sys.time()
   on.exit(timer(start.time))
@@ -102,8 +103,8 @@ multGLM <- function(data, sp.cols, var.cols, id.col = NULL, family = "binomial",
   for (s in sp.cols) {
     model.count <- model.count + 1
     response <- colnames(train.data)[s]
-    message("\nBuilding model ", model.count, " of ", n.models,
-            " (", response, ")...")
+    cat("\n------------------------------------------\n\n-> Building model ", model.count, " of ", n.models,
+            " (", response, ")...\n\n", sep = "")
     cat(length(var.cols), "input predictor variable(s)\n\n")
 
     if (TSA) {
@@ -114,8 +115,8 @@ multGLM <- function(data, sp.cols, var.cols, id.col = NULL, family = "binomial",
       var.cols <- c(var.cols, ncol(train.data))
     }  # end if TSA
 
-    attach(train.data, warn.conflicts = FALSE)  # won't work without attach... I think it's because train.data is not in the 'formula' environment
-    on.exit(detach(train.data), add = TRUE)
+    #attach(train.data, warn.conflicts = FALSE)  # won't work without attach... I think it's because train.data is not in the 'formula' environment
+    #on.exit(detach(train.data), add = TRUE)
 
     if (FDR) {
       fdr <- FDR(data = train.data, sp.cols = s, var.cols = var.cols, correction = correction, verbose = FALSE)
@@ -139,8 +140,8 @@ multGLM <- function(data, sp.cols, var.cols, id.col = NULL, family = "binomial",
 
     if (length(sel.var.cols) == 0)  model.vars <- 1
     else  model.vars <- colnames(train.data)[sel.var.cols]
-    model.formula <- as.formula(paste(response, "~", paste(model.vars,
-                                                           collapse = "+")))
+    model.formula <- with(train.data, as.formula(paste(response, "~", paste(model.vars, collapse = "+"))))
+
     model.expr <- expression(glm(model.formula, family = binomial))
 
     if (step && length(sel.var.cols) > 0) {
@@ -154,13 +155,13 @@ multGLM <- function(data, sp.cols, var.cols, id.col = NULL, family = "binomial",
       } else if (start == "null.model") {
         model.scope <- model.formula[-2]  # removes response from formula
         null.formula <- as.formula(paste(response, "~", 1))
-        model <- step(glm(null.formula, family = binomial),
+        model <- step(glm(null.formula, family = binomial, data = train.data),
                       direction = direction, scope = model.scope, trace = trace, k = K)
       } else stop ("'start' must be either 'full.model' or 'null.model'")
       n.vars.step <- length(model$coefficients) - 1
       excluded.vars <- setdiff(colnames(data[ , sel.var.cols]), names(model$coefficients)[-1])
       cat(n.vars.start - n.vars.step, "variable(s) excluded by 'step' function\n", paste(excluded.vars, collapse = ", "), "\n\n")
-    } else model <- eval(model.expr)
+    } else model <- eval(model.expr, envir = train.data)
 
     if (trim && length(sel.var.cols) > 0) {
       n.vars.start <- length(model$coefficients) - 1
@@ -205,6 +206,8 @@ multGLM <- function(data, sp.cols, var.cols, id.col = NULL, family = "binomial",
       data <- data[ , -ncol(data)]
       var.cols <- var.cols[-length(var.cols)]
     }  # end if TSA 2
+
+    #detach(train.data)
 
   }  # end for s
 

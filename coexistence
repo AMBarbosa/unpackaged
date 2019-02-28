@@ -1,0 +1,12 @@
+coexistence <- function(strong, weak) {
+  stopifnot(length(strong) == length(weak))
+  coex <- rep(NA, length(strong))
+  for (f in 1:length(strong)) {
+    if (is.na(strong[f]) | is.na(weak[f])) next
+    if (strong[f] == 3 & weak[f] == 3) coex[f] <- 1  # green
+    if (strong[f] == 1 & weak[f] == 1) coex[f] <- 2  # grey
+    if (strong[f] == 2 & weak[f] == 2) coex[f] <- 3  # orange
+    if (strong[f] == 3 & weak[f] == 2) coex[f] <- 3  # red
+  }  # end for f
+  return(coex)
+}

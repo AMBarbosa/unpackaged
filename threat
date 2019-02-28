@@ -1,0 +1,13 @@
+threat <- function(strong, weak) {
+  stopifnot(length(strong) == length(weak))
+  threat <- rep(NA, length(strong))
+  for (f in 1:length(strong)) {
+    if (is.na(strong[f]) | is.na(weak[f])) next
+    if (strong[f] == 3 & weak[f] == 3) threat[f] <- 1  # dark green
+    if (weak[f] == 1) threat[f]                  <- 2  # grey
+    if (strong[f] == 2 & weak[f] == 2) threat[f] <- 3  # orange
+    if (strong[f] == 3 & weak[f] <= 2) threat[f] <- 4  # red
+    if (weak[f] == 3 & strong[f] <= 2) threat[f] <- 5  # green
+  }  # end for f
+  return(threat)
+}

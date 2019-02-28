@@ -6,7 +6,7 @@ coexistence <- function(strong, weak) {
     if (strong[f] == 3 & weak[f] == 3) coex[f] <- 1  # green
     if (strong[f] == 1 & weak[f] == 1) coex[f] <- 2  # grey
     if (strong[f] == 2 & weak[f] == 2) coex[f] <- 3  # orange
-    if (strong[f] == 3 & weak[f] == 2) coex[f] <- 3  # red
+    if (strong[f] == 3 & weak[f] == 2) coex[f] <- 4  # red
   }  # end for f
   return(coex)
 }

@@ -1,0 +1,10 @@
+Favclass <- function(fav) {
+  fclass <- rep(NA, length(fav))
+  for (f in 1:length(Fav)) {
+    if (is.na(fav[f])) next
+    if (fav[f] < 0.2) fclass[f] <- 1
+    if (fav[f] >= 0.2 & fav[f] < 0.8) fclass[f] <- 2
+    if (fav[f] >= 0.8) fclass[f] <- 3
+  }  # end for f
+  return(fclass)
+}

@@ -1,11 +1,12 @@
-zonalFromZip <- function (zip.file, zones.map, fun, rast.file.ext = ".tif", aux.file.ext = NULL, delete.unzipped = TRUE, verbosity = 2, ...)
-  # version 2.0 (updated 11/07/2018)
+zonalFromZip <- function (zip.file, zones.map, fun, rast.file.ext = ".tif", aux.file.ext = NULL, NoData = NULL, delete.unzipped = TRUE, verbosity = 2, ...)
+  # version 2.2 (updated 19/09/2019)
   # zip.file: path to the zip containing the raster maps to calculate zonal stats from
   # zones.map: map (in your R workspace) containing the spatial units to calculate zonal stats to; must be of class 'raster', 'SpatialPolygons' or 'SpatialPolygonsDataFrame' and have the same CRS (and resolution if raster) of the maps in 'zip.file'
   # fun: function to calculate (e.g. mean)
   # rast.file.ext: file extension of the raster maps in 'zip.file'
   # aux.file.ext: file extension for the auxiliary files (e.g. ".hdr" for .bil raster files, or ".rdc" for Idrisi .rst files)
-  # ...: additional arguments to pass to the 'raster::zonal' (if 'zones.map' is a raster) or the 'raster::extract' function (if 'zones.map' is a SpatialPolygons* map), such as na.rm = TRUE
+  # NoData: raster value to interpret as null (e.g. -999)
+  # ...: additional arguments to pass to 'raster::zonal' (if 'zones.map' is a raster) or 'raster::extract' function (if 'zones.map' is a SpatialPolygons* map), such as na.rm = TRUE
 {
   require(raster)
   rast.files <- unzip(zip.file, list = TRUE) $ Name
@@ -16,14 +17,21 @@ zonalFromZip <- function (zip.file, zones.map, fun, rast.file.ext = ".tif", aux.
   
   for (i in 1:n.var) {
     if (verbosity >= 1) message("Getting variable ", i, " of ", n.var)
+    
     if (verbosity >= 2) message("  - unzipping file...")
     unzip(zip.file, files = paste0(var.names[i], rast.file.ext))
     if (!is.null(aux.file.ext)) unzip(zip.file, files = paste0(var.names[i], aux.file.ext))
     var.rast <- raster(paste0(var.names[i], rast.file.ext))
+    
     if (!compareRaster(var.rast, zones.map, stopiffalse = FALSE)) {
       if (verbosity >= 2) message("  - cropping to zones raster...")
       var.rast <- crop(var.rast, zones.map)
-    }
+    }  # end if crop
+    
+    if (!is.null(NoData)) {
+      if (verbosity >= 2) message("  - reclassifying NoData values...")
+      var.rast[var.rast == NoData] <- NA
+    }  # end if NoData
     
     if (verbosity >= 2) message("  - calculating zonal stats...")
     if (class(zones.map) == "raster")

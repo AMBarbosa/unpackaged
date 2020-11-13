@@ -25,7 +25,7 @@ predict_bart_df <- function (object, x.layers, quantiles = c(), ri.data = NULL, 
     xnames <- attr(object$fit$data@x, "term.labels")
     if (all(xnames %in% names(x.layers))) {
       #x.layers <- x.layers[[xnames]]
-      x.layers <- x.layers[ , xnames]  # my add
+      x.layers <- x.layers[ , xnames, drop = FALSE]  # my add
     }
     else {
       stop("Variable names of RasterStack don't match the requested names")

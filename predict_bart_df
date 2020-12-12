@@ -117,7 +117,10 @@ predict_bart_df <- function (object, x.layers, quantiles = c(), ri.data = NULL, 
   #})
   #outlist <- stack(outlist)
   #return(outlist)
-  return(output[ , 1])  # my add
+  
+  #return(output[ , 1])  # my add previously (no quantiles)
+  if (ncol(output) > 1)  colnames(output) <- c("pred", paste0("quant_", quantiles))  # my add
+  return(output)  # my add
 }
 
 dfextract <- function(df, quant) {

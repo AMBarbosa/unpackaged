@@ -1,0 +1,35 @@
+plot.mcmc <- function(object, inputstack, iter=100, wait=0.1, quiet=FALSE) {
+  
+  xnames <- attr(object$fit$data@x, "term.labels")
+  if(all(xnames %in% names(inputstack))) {
+    inputstack <- inputstack[[xnames]]
+  } else {
+    stop("Variable names of RasterStack don't match the requested names")
+  }
+  input.matrix <- as.matrix(getValues(inputstack))
+  
+  whichvals <- which(complete.cases(input.matrix))
+  #input.matrix <- input.matrix[complete.cases(input.matrix),]  # my comment-out
+  
+  cat('\n Generating the posterior predictions (takes a second) \n')
+  pred <- dbarts:::predict.bart(object, input.matrix)
+  
+  cat('\n Generating plots \n')
+  if(!quiet){pb <- txtProgressBar(min = 0, max = iter, style = 3)}
+  for (i in 1:iter){
+    output.m <- t(matrix(pred[i,],
+                         nrow = ncol(inputstack),
+                         ncol = nrow(inputstack)))
+    r <- raster(output.m,
+                xmn=xmin(inputstack[[1]]), xmx=xmax(inputstack[[1]]),
+                ymn=ymin(inputstack[[1]]), ymx=ymax(inputstack[[1]]),
+                crs=inputstack[[1]]@crs)
+    if(i==1){r1 <- r} else {r1 <- sum(r1, r)}
+    par(mfrow=c(1,2))
+    par(mar=c(2,1,2,5))
+    plot(r, box=F, axes=F, zlim=c(0,1), main=paste('Iter',i))
+    plot(r1/i, box=F, axes=F, zlim=c(0,1), main='Mean')
+    Sys.sleep(0.1)
+    if(!quiet){setTxtProgressBar(pb, i)}
+  }
+}

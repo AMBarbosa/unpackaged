@@ -3,15 +3,11 @@
 # and returns a data frame with the presences and absences, as well as the corresponding values of the rasters
 # in the grid of pixels (cells). All pixels without any presence point for each species are returned as absences.
 
-gridRecords_mult <- function (rst, # as in fuzzySim::gridRecords
-                              sp.coords, # data frame containing species presence records coordinates
-                              sp.col,  # column containing the species names
-                              coord.cols,  # columns containing the spatial coordinates
-                              na.rm = TRUE) 
+gridRecords_mult <- function (rst, sp.data, sp.col, coord.cols, na.rm = TRUE) 
 {
   # get a list of the presence coordinates for each species:
-  species <- as.character(unique(sp.coords[ , sp.col]))
-  pres_coords_list <- lapply(species, function(x) sp.coords[sp.coords[ , sp.col] == x , coord.cols])
+  species <- as.character(unique(sp.data[ , sp.col]))
+  pres_coords_list <- lapply(species, function(x) sp.data[sp.data[ , sp.col] == x , coord.cols])
 
   # grid records for each element of this list:
   gridded_records_list <- lapply(pres_coords_list, function(x) gridRecords(rst = rst, pres.coords = x))

@@ -10,7 +10,7 @@ gridRecords_mult <- function (rst, sp.data, sp.col, coord.cols, na.rm = TRUE)
   pres_coords_list <- lapply(species, function(x) sp.data[sp.data[ , sp.col] == x , coord.cols])
 
   # grid records for each element of this list:
-  gridded_records_list <- lapply(pres_coords_list, function(x) gridRecords(rst = rst, pres.coords = x))
+  gridded_records_list <- lapply(pres_coords_list, function(x) fuzzySim::gridRecords(rst = rst, pres.coords = x))
   
   names(gridded_records_list) <- species
 

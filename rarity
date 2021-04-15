@@ -1,12 +1,24 @@
-rarity_single <- function(x) 1 / sum(x)
+rarity_single <- function(x, na.rm = TRUE) {
+  1 / sum(x, na.rm = na.rm)
+}
 
-
-rarity <- function(data, sp.cols = data) {
+rarity <- function(data, sp.cols = 1:ncol(data), na.rm = TRUE) {
   rarity_total <- 0
   for (i in sp.cols) {
-    rarity_sp <- rarity_single(data[ , i])
+    rarity_sp <- rarity_single(data[ , i], na.rm = na.rm)
     ra <- data[ , i] * rarity_sp
     rarity_total <- rarity_total + ra
   }
   rarity_total
+}
+
+
+vulnerability <- function(data, sp.cols = 1:ncol(data), vuln) {
+  if (length(vuln) != length(sp.cols)) stop ("'vuln' must have the same length as 'sp.cols'")
+  vuln_total <- 0
+  for (i in 1:length(sp.cols)) {
+    v <- data[ , sp.cols[i]] * vuln[i]
+    vuln_total <- vuln_total + v
+  }
+  vuln_total
 }

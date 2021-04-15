@@ -1,0 +1,12 @@
+rarity_single <- function(x) 1 / sum(x)
+
+
+rarity <- function(data, sp.cols = data) {
+  rarity_total <- 0
+  for (i in sp.cols) {
+    rarity_sp <- rarity_single(data[ , i])
+    ra <- data[ , i] * rarity_sp
+    rarity_total <- rarity_total + ra
+  }
+  rarity_total
+}

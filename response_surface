@@ -1,0 +1,20 @@
+# adapted from code by Damaris Zurell
+# available under an Attribution 4.0 International license (CC BY 4.0)
+# at https://damariszurell.github.io/HU-GCIB/5_SDM_algorithms.html 
+
+response_surface <- function(x,  # two-column dataframe of the pair of variables to plot the response surface for
+                             object,  # two-variable model object with which to produce the predictions
+                             main = "Response surface",  # main title for the plot
+                             na.rm = TRUE,
+                             ...) {  # additional arguments to pass to the 'predict' function, e.g. type="response"
+
+  xyz <- expand.grid(
+    seq(min(x[ , 1], na.rm = na.rm), max(x[ , 1], na.rm = na.rm), length = 50),
+    seq(min(x[ , 2], na.rm = na.rm), max(x[ , 2], na.rm = na.rm), length = 50))
+  
+  var_names <- colnames(x)
+  names(xyz) <- var_names
+  
+  xyz$z <- predict(object, xyz, ...)
+  lattice::wireframe(z ~ get(var_names[1]) + get(var_names[2]), data = xyz, zlab = list("Predicted value", rot = 90), drape = TRUE, col.regions = hcl.colors(100), scales = list(arrows = FALSE), zlim = c(0, 1), main = main, xlab = var_names[1], ylab = var_names[2], screen = list(z = -40, x = -70, y = 3))
+}

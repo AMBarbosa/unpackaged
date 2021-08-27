@@ -1,0 +1,25 @@
+dms2dec <- function(dms, separators = c("º", "°", "\'", "\"")) {
+  # version 1.0 (25 Sep 3013)
+  # dms: a vector (or column) of latitude or longitude in degrees-minutes-seconds-hemisfere, e.g. 41° 34' 10.956" N (with or without spaces)
+  # separators: the characters that are separating degrees, minutes and seconds in dms
+
+  dms <- as.character(dms)
+  dms <- gsub(pattern = " ", replacement = "", x = dms)
+  for (s in separators) dms <- gsub(pattern = s, replacement = "_splitHere_", x = dms)
+
+  splits <- strsplit(dms, split = "_splitHere_")
+  n <- length(dms)
+  deg <- min <- sec <- hem <- vector("character", n)
+
+  for (i in 1:n) {
+    deg[i] <- splits[[i]][1]
+    min[i] <- splits[[i]][2]
+    sec[i] <- splits[[i]][3]
+    hem[i] <- splits[[i]][4]
+  }
+
+  dec <- as.numeric(deg) + (as.numeric(min) / 60) + (as.numeric(sec) / 3600)
+  sign <- ifelse (hem %in% c("N", "E"), 1, -1)
+  dec <- sign * dec
+  return(dec)
+}  # end dms2dec function 

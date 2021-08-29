@@ -1,4 +1,4 @@
-dms2dec <- function(dms, separators = c("º", "°", "\'", "\"", "\''")) {
+dms2dec <- function(dms, separators = c("º", "°", "\'", "\"", "\'\'")) {
   # version 1.0 (25 Sep 3013)
   # dms: a vector (or column) of latitude or longitude in degrees-minutes-seconds-hemisfere, e.g. 41° 34' 10.956" N (with or without spaces)
   # separators: the characters that are separating degrees, minutes and seconds in dms

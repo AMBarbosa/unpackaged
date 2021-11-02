@@ -1,0 +1,10 @@
+classify <- function(obs, pred, thresh) {
+  if (length(obs) != length(pred)) stop("'obs' and 'pred' must be of the same length (and in the same order)")
+  if (thresh < min(pred, na.rm = TRUE) || thresh > max(pred, na.rm = TRUE)) stop("'thresh' must be within the range of 'pred'")
+  res <- rep("", length(obs))
+  res[pred >= thresh & obs == 1] <- "TruePos"
+  res[pred < thresh & obs == 0] <- "TrueNeg"
+  res[pred >= thresh & obs == 0] <- "FalsePos"
+  res[pred < thresh & obs == 1] <- "FalseNeg"
+  res
+}

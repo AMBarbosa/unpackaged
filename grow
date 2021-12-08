@@ -1,0 +1,47 @@
+# GROW RASTER PIXELS TOWARDS 'NA' AREAS USING THE VALUE OF THE CLOSEST PIXEL
+
+
+# this function is largely based on the script provided by Lennert at https://stackoverflow.com/questions/27562076/if-raster-value-na-search-and-extract-the-nearest-non-na-pixel/37392542#37392542
+
+# it just converts the script to a function, and to 'terra' (rather than 'raster') package wherever possible
+
+
+grow <- function(rst,  # a SpatRaster or Raster layer in a projected CRS (results will be wrong for unprojected maps!)
+                 dist = 1000  # distance up to which to grow pixels
+) {
+
+  library(terra)
+  library(raster)
+
+  if(is(rst, "Raster"))  rst <- rast(rst)
+
+  dis <- distance(rst)
+  if (is.finite(dist))  dis[dis > dist] <- NA
+
+  dir <- direction(raster(rst), from = FALSE)
+  dir <- rast(dir)
+
+  rna <- is.na(rst) # returns NA raster
+
+  # store coordinates in new raster: https://stackoverflow.com/a/35592230/3752258
+  na.x <- init(rna, "x")
+  na.y <- init(rna, "y")
+
+  # calculate coordinates of the nearest Non-NA pixel
+  # assume that we have a orthogonal, projected CRS, so we can use (Pythagorean) calculations
+  co.x <- na.x + dis * sin(dir)
+  co.y <- na.y + dis * cos(dir)
+
+  # matrix with point coordinates of nearest non-NA pixel
+  co <- cbind(co.x[], co.y[])
+
+  # extract values of nearest non-NA cell with coordinates co
+  NAVals <- extract(rst, co)
+  r.NAVals <- rna  # initiate new raster
+  r.NAVals[] <- NAVals[ , 1]  # store values in raster
+
+  # cover nearest non-NA value at NA locations of original raster
+  r.filled <- cover(x = raster(rst), y = raster(r.NAVals))
+
+  return(rast(r.filled))
+}

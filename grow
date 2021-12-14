@@ -1,14 +1,17 @@
-# GROW RASTER PIXELS TOWARDS 'NA' AREAS USING THE VALUE OF THE CLOSEST PIXEL
+# GROW A RASTER SURFACE TOWARDS 'NA' AREAS USING THE VALUE OF THE CLOSEST PIXEL
 
 
 # this function is largely based on the script provided by Lennert at https://stackoverflow.com/questions/27562076/if-raster-value-na-search-and-extract-the-nearest-non-na-pixel/37392542#37392542
 
-# it just converts the script to a function, and to 'terra' (rather than 'raster') package wherever possible
+# it just converts the script to a function, and to 'terra' (rather than 'raster') package functions wherever possible
 
 
-grow <- function(rst,  # a SpatRaster or Raster layer in a projected CRS (results will be wrong for unprojected maps!)
-                 dist = 1000  # distance up to which to grow pixels
+grow <- function(rst,  # a SpatRaster or Raster layer in a projected CRS
+                 dist = 10000  # distance up to which to grow pixels; if NA, the entire raster is filled with values
 ) {
+
+  if (is.lonlat(rst)) stop("'rst' is in unprojected lon-lat coordinates; this function requires a projected 'rst'.")
+  else if (is.lonlat(rst, perhaps = TRUE)) warning("'rst' does not have a defined CRS, but the coordinates look like they could be unprojected lon-lat. This function requires a projected 'rst'.")
 
   library(terra)
   library(raster)
@@ -28,7 +31,7 @@ grow <- function(rst,  # a SpatRaster or Raster layer in a projected CRS (result
   na.y <- init(rna, "y")
 
   # calculate coordinates of the nearest Non-NA pixel
-  # assume that we have a orthogonal, projected CRS, so we can use (Pythagorean) calculations
+  # if we have an orthogonal, projected CRS, we can use (Pythagorean) calculations
   co.x <- na.x + dis * sin(dir)
   co.y <- na.y + dis * cos(dir)
 

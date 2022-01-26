@@ -1,8 +1,8 @@
-dms2dec <- function(dms, separators = c("º", "°", "\'", "\"", "\'\'")) {
-  # version 1.1 (24 Aug 2021)
+dms2dec <- function(dms, separators = c("º", "°", "\'", "'", "''", "\"", "\'\'")) {
+  # version 1.2 (26 Jan 2022)
   # dms: a vector (or column) of latitude or longitude in degrees-minutes-seconds-hemisfere, e.g. 41° 34' 10.956" N (with or without spaces)
   # separators: the characters that are separating degrees, minutes and seconds in dms
-  
+
   # to source this, remember to add encoding: source("https://raw.githubusercontent.com/AMBarbosa/unpackaged/master/dms2dec", encoding = "UTF-8")
 
 
@@ -17,12 +17,17 @@ dms2dec <- function(dms, separators = c("º", "°", "\'", "\"", "\'\'")) {
   for (i in 1:n) {
     deg[i] <- splits[[i]][1]
     min[i] <- splits[[i]][2]
-    sec[i] <- splits[[i]][3]
-    hem[i] <- splits[[i]][4]
+
+    if (length(splits[[i]]) < 4) {
+      hem[i] <- splits[[i]][3]
+    } else {
+      sec[i] <- splits[[i]][3]
+      hem[i] <- splits[[i]][4]
+    }
   }
 
-  dec <- as.numeric(deg) + (as.numeric(min) / 60) + (as.numeric(sec) / 3600)
+  dec <- colSums(rbind(as.numeric(deg), (as.numeric(min) / 60), (as.numeric(sec) / 3600)), na.rm = TRUE)
   sign <- ifelse (hem %in% c("N", "E"), 1, -1)
   dec <- sign * dec
   return(dec)
-}  # end dms2dec function 
+}  # end dms2dec function

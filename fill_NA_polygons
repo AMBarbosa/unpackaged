@@ -1,0 +1,80 @@
+# FUNCTION FOR FILLING NA POLYGONS BY AVERAGING ADJACENT VALUES ####
+
+fill_NA_polygons <- function(x,  # SpatVector polygon map
+                    fill.cols,  # names/indexes of column(s) whose NA values to fill
+                    adj.type = "queen",  # argument 'type' for 'terra::adjacent'
+                    fun = "mean",  # it's the only one implemented right now
+                    plot = TRUE,  # plot the 'before' and 'after' maps
+                    south_to_north = FALSE,
+                    ...)  # arguments for 'terra::plot'
+{
+  
+  # version 1.0 (26 May 2022)
+  
+  # if there are polygons surrounded by NAs (i.e. without any adjacent values), they are filled in a subsequent round using the updated (newly filled) adjacent values
+  
+  # improvements to be made:
+  # - run 'adjacent' only for NA polygons
+  # - implement for functions other than 'mean'
+  # - implement "real-time" filling, i.e. each fill can be used by next one (I think it's already done)
+  # - fix south_to_north so that it doesn't disorganize the map
+  
+  if (!inherits(x, "SpatVector")) stop ("'x' must be of class SpatVector.")
+  if (!(all(fill.cols %in% 1:ncol(x)) || all(fill.cols %in% names(x)))) stop ("'fill.cols' must be among the columns in 'x'.")
+  if (!adj.type %in% c("rook", "queen", "touches", "intersects")) stop ("Invalid 'adj.type'.")
+  if (fun != "mean") stop ("Sorry, 'mean' is currently the only implemented 'fun'.")
+  
+  if (south_to_north) {
+    x$ord <- 1:nrow(x)
+    x <- x[order(crds(x)[ , "y"]), ]
+  }
+  
+  cat("Identifying adjacent polygons...\n")
+  adjacents <- as.data.frame(terra::adjacent(x, type = adj.type))
+  
+  output <- values(x)[ , fill.cols, drop = FALSE]
+
+  column_count <- 0
+  for (column in fill.cols) {
+    column_count <- column_count + 1
+    cat("\nFilling column ", column_count, " of ", length(fill.cols), ":\n", sep = "")
+    
+    out <- values(x)[ , column]
+    na_rows <- which(!is.finite(values(x)[ , column]))
+    
+    round_count <- 0
+    while (sum(!is.finite(out)) > 0) {
+      round_count <- round_count + 1
+      na_rows <- which(!is.finite(out))
+      na_adjs <- adjacents$from %in% na_rows
+      
+      cat("- averaging adjacent values...\n")
+      progbar <- txtProgressBar(min = 0, max = length(na_rows), style = 3, char = "-")
+      for (i in na_rows) {
+        gc()
+        setTxtProgressBar(progbar, match(i, na_rows))
+        neighbs <- adjacents[adjacents$from == i, "to"]
+        neighb_vals <- out[neighbs]
+        neighb_mean <- mean(neighb_vals, na.rm = TRUE)
+        out[i] <- neighb_mean
+      }  # end for i
+      cat("\n...round", round_count, "completed.\n")
+    }  # end while
+    cat("No more rounds for this column.\n")
+    
+    if (plot) {
+      if (is.numeric(column)) column <- names(x)[column]
+      x$filled <- out
+      plot(x, c(column, "filled"), ...)
+    }
+    
+    output[ , column] <- out
+  }  # end for column
+  
+  if (south_to_north) {
+    output <- output[x$ord, ]
+  }
+  
+  cat("Finished!\n")
+  return(output)
+}

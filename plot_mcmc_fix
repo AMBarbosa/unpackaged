@@ -3,6 +3,8 @@
 # fixes problem for rasters containing NA pixels (e.g. masked rasters)
 
 plot.mcmc <- function(object, inputstack, iter=100, wait=0.1, quiet=FALSE) {
+
+warning("This function is no longer maintained. Instead, use the one at https://raw.githubusercontent.com/AMBarbosa/embarcadero/master/R/plot_mcmc.R")
   
   xnames <- attr(object$fit$data@x, "term.labels")
   if(all(xnames %in% names(inputstack))) {

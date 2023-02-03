@@ -51,9 +51,9 @@ predict_bart_df <- function (object, x.layers, quantiles = c(), ri.data = NULL, 
   }
   if (splitby == 1) {
     if (class(object) == "bart") {
-      # pred <- dbarts:::predict.bart(object, input.matrix)
-      # the above would cause error with categorical variables in the model (input.matrix has one new variable per category, instead of the input variable names); replaced with:
-      pred <- dbarts:::predict.bart(object, object$fit$data@x)
+      pred <- dbarts:::predict.bart(object, input.matrix)
+      # the above causes error with categorical variables in the model (input.matrix has one new variable per category, instead of the input variable names)
+      # pred <- dbarts:::predict.bart(object, object$fit$data@x)  # but this fails when predicting outside the model training data
     }
     else if (class(object) == "rbart") {
       if (ri.pred == FALSE) {

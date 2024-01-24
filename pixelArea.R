@@ -3,6 +3,8 @@ pixelArea <- function(r, # SpatRaster
                       unit = "m",  # can also be "km"
                       mask = TRUE,  # to use only non-NA pixels
                       map = TRUE) {
+  
+  # by A. Marcia Barbosa (https://modtools.wordpress.com/)  
   # version 1.2 (24 Jan 2024)
 
   stopifnot(inherits(r, "SpatRaster"),

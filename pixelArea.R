@@ -26,9 +26,9 @@ pixelArea <- function(r, # SpatRaster
     }
 
     centr_pix <- terra::cellFromXY(r, terra::crds(centr))
-    cat(paste0("Centroid pixel area (", unit, "2):\n"))
     out <- areas[centr_pix]
     if (!is.finite(out)) message("The centroid of your region may not have a pixel value; consider using mask=FALSE")
+    cat(paste0("Centroid pixel area (", unit, "2):\n"))
     return(out)
   }
 }

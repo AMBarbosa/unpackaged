@@ -1,23 +1,27 @@
-dms2dec <- function(dms, separators = c("º", "°","’’", "\'\'","\'", "’",  "\"",  "\\?")) {
+dms2dec <- function(dms, separators = c("º", "°", "\'", "’", "\"", "\\?")) {
+  # separators = c("º", "°", "\'", "’", "\"", "\\?")
+  # separators = c("\\u00ba", "\\u00b0", "\\'", "\\u2019", "\"", "\\?", "\\\\?")
 
   # by A. Marcia Barbosa (https://modtools.wordpress.com/)
   #   contributions by PaulMelloy (https://github.com/PaulMelloy)
   # license: CC BY-SA 4.0 (Creative Commons)
   # like R, this function is free, open-source and comes with absolutely no warranty; bug reports welcome!
 
-  # version 1.5 (4 Feb 2022)
+  # version 1.6 (27 May 2024)
   # dms: a vector of latitude or longitude in degrees-minutes-seconds-hemisphere,
   #   e.g. 41° 34' 10.956" N (with or without spaces) or
   # ddm: a vector of latitude or longitude in degrees-decimal minutes
   #   e.g. 41° 34.1826' N (with or without spaces)
   # separators: the characters that are separating degrees, minutes and seconds in dms
 
-  # to source this function, remember to add encoding: source("https://raw.githubusercontent.com/AMBarbosa/unpackaged/master/dms2dec", encoding = "UTF-8")
-
+  # to source this function, remember to add encoding:
+  # source("https://raw.githubusercontent.com/AMBarbosa/unpackaged/master/dms2dec", encoding = "UTF-8")
 
   dms <- as.character(dms)
   dms <- gsub(pattern = " ", replacement = "", x = dms)
-  for (s in separators) dms <- gsub(pattern = s, replacement = "_splitHere_", x = dms)
+  new_split_string <- "_splitHere_"
+  for (s in separators) dms <- gsub(pattern = s, replacement = new_split_string, x = dms, useBytes = FALSE)
+  dms <- gsub(paste0(new_split_string, new_split_string), new_split_string, dms, useBytes = TRUE)
 
   splits <- strsplit(dms, split = "_splitHere_")
   n <- length(dms)

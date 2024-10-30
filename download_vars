@@ -4,7 +4,7 @@
 # for large files, consider first increasing the timeout option with e.g. `options(timeout = 6000)`
 
 
-download_vars <- function(links, destdir) {
+downloadVars <- function(links, destdir) {
 
   # by A. Marcia Barbosa (https://modtools.wordpress.com/)
   # license: CC BY-SA 4.0 (Creative Commons)

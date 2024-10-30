@@ -1,0 +1,27 @@
+# this function takes a set of file download links and the path to a destination folder
+# checks if each file has already been downloaded into that folder
+# and if it has the original online file size (i.e. if the download was not incomplete)
+# for large files, consider first increasing the timeout option with e.g. `options(timeout = 6000)`
+
+
+download_vars <- function(links, destdir) {
+
+  # by A. Marcia Barbosa (https://modtools.wordpress.com/)
+  # license: CC BY-SA 4.0 (Creative Commons)
+
+  for (l in 1:length(links)) {
+    link <- links[l]
+    file_name <- basename(link)
+    message(l, "\n", file_name)
+    file_path <- paste(destdir, file_name, sep = "/")
+    download <- TRUE
+    if (file.exists(file_path)) {
+      # check if file is corrupted and needs new download
+      file_size <- file.info(file_path)$size
+      download_size <- as.numeric(httr::HEAD(link)$headers$`content-length`)  # https://stackoverflow.com/questions/63852146/how-to-determine-online-file-size-before-download-in-r
+      if (all.equal(file_size, download_size))  download <- FALSE
+    }  # end if file.exists
+    if (isTRUE(download))
+      download.file(link, destfile = file_path, mode = "wb")
+  }  # end if download
+}  # end download_vars function

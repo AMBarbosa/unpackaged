@@ -1,6 +1,7 @@
 # this function takes a set of file download links and the path to a destination folder
 # checks if each file has already been downloaded into that folder
-# and if it has the original online file size (i.e. if the download was not incomplete)
+# and if it has the original online file size (i.e. if the download was complete)
+# if not, it downloads the file into that folder
 # for large files, consider first increasing the timeout option with e.g. `options(timeout = 6000)`
 
 
@@ -24,4 +25,4 @@ downloadVars <- function(links, destdir) {
     if (isTRUE(download))
       download.file(link, destfile = file_path, mode = "wb")
   }  # end if download
-}  # end download_vars function
+}  # end downloadVars function

@@ -1,0 +1,21 @@
+randomGrid <- function(width = 5, height = 4, res = 0.5) {
+  # Check inputs
+  if (width <= 0 || height <= 0 || res <= 0) {
+    stop("width, height, and res must be positive values.")
+  }
+  
+  # Calculate random window extent
+  xmin <- runif(1, -180, 180 - width)
+  ymin <- runif(1, -90, 90 - height)
+  xmax <- xmin + width
+  ymax <- ymin + height
+  
+  # Create a SpatRaster with the specified res
+  r <- terra::rast(extent = c(xmin, xmax, ymin, ymax), res = res)
+  
+  # Convert raster cells to polygons
+  grid <- terra::as.polygons(r)
+  
+  # Return the grid
+  return(grid)
+}

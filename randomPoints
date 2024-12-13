@@ -1,4 +1,4 @@
-randomPoints <- function(xrange = 2, yrange = 3, n = 10) {
+randomPoints <- function(n = 10, xrange = 2, yrange = 3) {
   # Check inputs
   if (xrange <= 0 || yrange <= 0 || n <= 0) {
     stop("xrange, yrange, and number of points must be positive values.")

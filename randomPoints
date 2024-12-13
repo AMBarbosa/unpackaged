@@ -1,14 +1,14 @@
-randomPoints <- function(n = 10, xrange = 2, yrange = 3) {
+randomPoints <- function(n = 10, dx = 2, dy = 3) {
   # Check inputs
-  if (xrange <= 0 || yrange <= 0 || n <= 0) {
-    stop("xrange, yrange, and number of points must be positive values.")
+  if (dx <= 0 || dy <= 0 || n <= 0) {
+    stop("dx, dy, and number of points must be positive values.")
   }
 
   # Calculate random window extent
-  xmin <- runif(1, -180, 180 - xrange)
-  ymin <- runif(1, -90, 90 - yrange)
-  xmax <- xmin + xrange
-  ymax <- ymin + yrange
+  xmin <- runif(1, -180, 180 - dx)
+  ymin <- runif(1, -90, 90 - dy)
+  xmax <- xmin + dx
+  ymax <- ymin + dy
 
   # Generate random points within the extent
   x_coords <- runif(n, xmin, xmax)

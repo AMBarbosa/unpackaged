@@ -1,0 +1,22 @@
+randomPoints <- function(width = 2, height = 3, n = 10) {
+  # Check inputs
+  if (width <= 0 || height <= 0 || n <= 0) {
+    stop("Width, height, and number of points must be positive values.")
+  }
+
+  # Calculate random window extent
+  xmin <- runif(1, -180, 180 - width)
+  ymin <- runif(1, -90, 90 - height)
+  xmax <- xmin + width
+  ymax <- ymin + height
+
+  # Generate random points within the extent
+  x_coords <- runif(n, xmin, xmax)
+  y_coords <- runif(n, ymin, ymax)
+
+  # Create a SpatVector of points
+  points_vect <- vect(cbind(x_coords, y_coords), type = "points", crs = "+proj=longlat +datum=WGS84")
+
+  # Return the points
+  return(points_vect)
+}

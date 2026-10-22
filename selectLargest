@@ -1,0 +1,29 @@
+selectLargest <- function(x,  # terra SpatVector polygons or lines
+                          n = 1,  # number of largest features to retain
+                          dissolve = FALSE,  # whether to group contiguous features
+                          singleparts = TRUE  # whether to disaggregate multi-part features
+) {
+
+# by A. Marcia Barbosa
+# v1.0 (2026-10-20)
+
+  stopifnot(inherits(x, "SpatVector"),
+            terra::geomtype(x) %in% c("polygons", "lines"))
+
+  if (dissolve) {
+    x <- terra::aggregate(x)
+  }
+
+  if (singleparts) {
+    x <- terra::disagg(x)
+  }
+
+  if (terra::is.polygons(x)) {
+    size_rank <- order(terra::expanse(x), decreasing = TRUE)
+  } else if (terra::is.lines(x)) {
+    size_rank <- order(terra::perim(x), decreasing = TRUE)
+  }
+
+  x[size_rank[1:n], ]
+
+}

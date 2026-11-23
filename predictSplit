@@ -1,0 +1,44 @@
+predictSplit <- function(mod,                        # bart model object
+                         vars,                       # SpatRaster (or RasterStack, discouraged)
+                         nmax = 20000,               # max N pixels each tile
+                         plot = TRUE,                # map tile splits
+                         quantiles = c(0.05, 0.95),  # for BART prediction
+                         verbosity = 2               # show progress messages
+) {
+
+  # author: A. Marcia Barbosa
+  # version: 1.0 (23/11/2026)
+  # license: CC-BY-SA
+
+  if (verbosity > 0) message("computing number of cross-layer non-NA pixels to predict on...")
+  vars <- vars[[colnames(mod$varcount)]]  # only modelled layers
+  trr <- ifelse(inherits(vars, "SpatRaster"), TRUE, FALSE)
+  if (!trr) vars <- terra::rast(vars)
+  pixs_pred <- all(terra::not.na(vars, falseNA = NA))
+  npix <- terra::global(pixs_pred, sum, na.rm = TRUE)[1,1]
+
+  if (verbosity > 0) message("splitting layers into tiles (up to ~", nmax, " non-NA pixels each)...")
+  ntarget <- npix / nmax  # target number of tiles
+  splits <- round(log2(ntarget))  # approximate
+  divs <- terra::divide(pixs_pred, n = splits)
+  ntiles <- length(divs)  # final number of tiles
+  if (plot) terra::plot(divs, 1, lwd = 0.2, main = paste(ntiles, "tiles"), type = "continuous", col = terra::map.pal("wave", ntiles), legend = FALSE)
+  tiles <- terra::makeTiles(vars, divs, value = "collection", filename = paste0(tempdir(), "/zzz_tile_.tif"), overwrite = TRUE)
+
+  if (verbosity > 0) message("predicting on ", ntiles, " tiles...")
+  preds <- vector("list", length = ntiles)
+  for (i in 1:ntiles) {
+    if (verbosity > 1) cat(" -", i)
+    r <- raster::stack(tiles[i])  # pending embarcadero terra update
+    p <- embarcadero::predict2.bart(mod, r, quantiles = quantiles)
+    preds[[i]] <- terra::rast(p)  # pending embarcadero terra update
+  }
+
+  if (verbosity > 1) message("merging prediction tiles...")
+  out <- terra::merge(terra::sprc(preds))
+  if (!trr) out <- raster::stack(out)
+  return(out)
+}
+
+# usage:
+# system.time(pred <- predictSplit(mod, vars))

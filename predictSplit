@@ -7,7 +7,7 @@ predictSplit <- function(mod,                        # bart model object
 ) {
 
   # author: A. Marcia Barbosa
-  # version: 1.0 (23/11/2026)
+  # version: 1.1 (25/11/2026)
   # license: CC-BY-SA
 
   if (verbosity > 0) message("computing number of cross-layer non-NA pixels to predict on...")
